@@ -4,8 +4,13 @@ import akka.actor._
 import akka.cluster._
 import akka.cluster.ClusterEvent._
 
+case class Msg(msg: String, n: Int)
+
 class ClusterListener(val seedNodes: collection.immutable.Seq[Address], val worker: ActorRef) extends Actor with ActorLogging {
   val cluster = Cluster(context.system)
+
+  // case class Msg(msg: String, n: Int)
+  // この位置に case class を置くとエラー
 
   override def preStart(): Unit = {
     if (seedNodes.length > 0) {
@@ -25,20 +30,23 @@ class ClusterListener(val seedNodes: collection.immutable.Seq[Address], val work
     case MemberUp(member) => {
       log.info("Member is Up: {}", member.address)
       log.info("Current members: {}", cluster.state.members.mkString(", "))
-      if (member.address != cluster.selfAddress) {
-        cluster.state.members.foreach { m =>
+    }
+    case UnreachableMember(member) =>
+      println("!!!!!!!" ++ member.address.port.toString ++ "!!!!!!!")
+    case MemberRemoved(member, previousStatus) =>
+      log.info("Member is Removed: {} after {}", member.address, previousStatus)
+    case Msg(msg, n) => {
+      println(n.toString ++ " " ++ msg)
+    }
+    case any => {
+      // broadcasting
+      println(cluster.state.members.mkString(", "))
+      cluster.state.members.foreach { m =>
+        if (m.address != cluster.selfAddress) {
           val actor = context.actorSelection(s"${m.address.toString}/user/listener")
-          actor ! ("Hi! Nice to meet you! from " ++ cluster.selfAddress.toString)
+          actor ! Msg(any.toString.take(20) ++ "... from " ++ cluster.selfAddress.toString, 0)
         }
       }
     }
-    case UnreachableMember(member) =>
-      log.info("Member detected as unreachable: {}", member)
-    case MemberRemoved(member, previousStatus) =>
-      log.info("Member is Removed: {} after {}", member.address, previousStatus)
-    case msg: String => {
-      println(msg)
-    }
-    case any => // log.info("Any Event: " + any.toString)
   }
 }
