@@ -10,9 +10,9 @@ object Server extends App {
 
 class ServerActor extends Actor {
   def receive = {
-    case Ping(msg) => {
-      println("Server received ping message: " ++ msg)
-      sender ! Pong("heyehyehey")
+    case Ping(msg, n) => {
+      println("Server received ping message: " ++ n.toString ++ " " ++ msg)
+      sender ! Pong("heyehyehey", n + 1)
     }
   }
 }
