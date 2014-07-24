@@ -12,9 +12,9 @@ object Client extends App {
 class ClientActor extends Actor {
   val server = context.actorSelection("akka.tcp://server@127.0.0.1:2552/user/server")
   def receive = {
-    case Start => server ! Ping
-    case Pong => {
-      println("Client received pong message")
+    case Start => server ! Ping("hogheoge")
+    case Pong(msg) => {
+      println("Client received pong message: " ++ msg)
       Thread.sleep(1000)
       self ! Start
     }
