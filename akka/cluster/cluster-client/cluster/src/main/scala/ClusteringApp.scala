@@ -11,7 +11,7 @@ object ClusteringApp {
     val seedNodes = immArgs.map(AddressFromURIString(_))
     val worker = system.actorOf(Props[Worker], name = "worker")
     sys.addShutdownHook(system.shutdown())
-    val listener = system.actorOf(Props(classOf[ClusterListener], seedNodes, worker), name = "listener")
+    val listener = system.actorOf(Props(classOf[ClusterListener], seedNodes), name = "listener")
     ClusterReceptionistExtension(system).registerService(worker)
   }
 }
