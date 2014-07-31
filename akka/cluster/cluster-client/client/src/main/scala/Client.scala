@@ -14,7 +14,7 @@ object Client {
     val c = system.actorOf(ClusterClient.props(initialContacts))
     (1 to 100).foreach { n: Int =>
       c ! ClusterClient.Send("/user/worker", "hello: " ++ n.toString, localAffinity = true)
-      c ! ClusterClient.SendToAll("/user/worker", "hello: " ++ n.toString)
+      // c ! ClusterClient.SendToAll("/user/worker", "hello: " ++ n.toString)
       // c ! ClusterClient.Publish("listener", "hello publish") ?
       Thread.sleep(1234)
     }
