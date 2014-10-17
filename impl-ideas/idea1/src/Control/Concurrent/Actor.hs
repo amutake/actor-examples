@@ -9,7 +9,6 @@ module Control.Concurrent.Actor
     , self
     , become
     , new
-    , start
     ) where
 
 import Control.Applicative
@@ -22,16 +21,16 @@ import Control.Monad.STM
 
 newtype Behavior t = Behavior (t -> Actor t ())
 
-newtype Actor t a = Actor (StateT (Behavior t) (ReaderT (ActorId t) IO) a)
+newtype Actor t a = Actor { runActor :: StateT (Behavior t) (ReaderT (ActorId t) IO) a }
   deriving (Functor, Applicative, Monad, MonadReader (ActorId t), MonadState (Behavior t), MonadIO)
 
 type ActorId t = TQueue t
 
-stm :: STM a -> Actor t a
+stm :: MonadIO m => STM a -> m a
 stm = liftIO . atomically
 
 infixr 0 !
-(!) :: ActorId t -> t -> Actor s ()
+(!) :: MonadIO m => ActorId t -> t -> m ()
 actorId ! msg = stm $ writeTQueue actorId msg
 
 self :: Actor t (ActorId t)
@@ -40,10 +39,10 @@ self = ask
 become :: Behavior t -> Actor t ()
 become = put
 
-newIO :: Behavior t -> IO (ActorId t)
-newIO behavior = do
+new :: MonadIO m => Behavior t -> m (ActorId t)
+new behavior = liftIO $ do
     queue <- newTQueueIO
-    forkIO $ flip runReaderT queue $ flip evalStateT behavior $ extractActor loop
+    forkIO $ flip runReaderT queue $ flip evalStateT behavior $ runActor loop
     return queue
   where
     loop = do
@@ -52,12 +51,3 @@ newIO behavior = do
       msg <- stm $ readTQueue queue
       f msg
       loop
-    extractActor (Actor c) = c
-
-new :: Behavior t -> Actor s (ActorId t)
-new = liftIO . newIO
-
-start :: Behavior t -> t -> IO ()
-start behavior initialValue = do
-    actorId <- newIO behavior
-    atomically $ writeTQueue actorId initialValue

@@ -67,5 +67,6 @@ starter = Behavior $ \() -> do
 
 main :: IO ()
 main = do
-    start starter ()
+    s <- new starter
+    s ! ()
     threadDelay 10000

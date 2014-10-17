@@ -6,7 +6,8 @@ import Control.Monad.IO.Class
 
 main :: IO ()
 main = do
-    start pingpong ()
+    pp <- new pingpong
+    pp ! ()
     threadDelay 10000000
 
 pingpong :: Behavior ()
