@@ -26,12 +26,9 @@ newtype Actor t a = Actor { runActor :: StateT (Behavior t) (ReaderT (ActorId t)
 
 type ActorId t = TQueue t
 
-stm :: MonadIO m => STM a -> m a
-stm = liftIO . atomically
-
 infixr 0 !
 (!) :: MonadIO m => ActorId t -> t -> m ()
-actorId ! msg = stm $ writeTQueue actorId msg
+actorId ! msg = liftIO . atomically $ writeTQueue actorId msg
 
 self :: Actor t (ActorId t)
 self = ask
@@ -48,6 +45,6 @@ new behavior = liftIO $ do
     loop = do
       (Behavior f) <- get
       queue <- ask
-      msg <- stm $ readTQueue queue
+      msg <- liftIO . atomically $ readTQueue queue
       f msg
       loop
