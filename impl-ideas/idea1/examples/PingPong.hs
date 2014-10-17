@@ -6,15 +6,10 @@ import Control.Monad.IO.Class
 
 main :: IO ()
 main = do
-    pp <- new pingpong
-    pp ! ()
-    threadDelay 10000000
-
-pingpong :: Behavior ()
-pingpong = Behavior $ \() -> do
     ponger <- new pong
     pinger <- new (ping ponger)
     pinger ! ""
+    threadDelay 10000000
 
 pong :: Behavior (String, ActorId String)
 pong = Behavior $ \(str, pinger) -> do

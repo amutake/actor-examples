@@ -58,15 +58,10 @@ customerBehavior logger vm = Behavior $ \case
             4 -> vm ! (CoffeeButton, me)
             _ -> undefined
 
-starter :: Behavior ()
-starter = Behavior $ \() -> do
+main :: IO ()
+main = do
     logger <- new loggerBehavior
     vm <- new $ vendingMachineBehavior logger 0
     customer <- new $ customerBehavior logger vm
     customer ! CoinIndicator 0
-
-main :: IO ()
-main = do
-    s <- new starter
-    s ! ()
     threadDelay 10000
