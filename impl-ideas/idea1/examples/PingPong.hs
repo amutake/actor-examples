@@ -1,3 +1,5 @@
+module PingPong where
+
 import Control.Concurrent
 import Control.Concurrent.Actor
 import Control.Monad.IO.Class
